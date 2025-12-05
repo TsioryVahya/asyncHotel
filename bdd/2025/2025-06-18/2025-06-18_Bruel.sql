@@ -1,0 +1,3 @@
+INSERT INTO MENUDYNAMIQUE (ID, LIBELLE, ICONE, HREF, RANG, NIVEAU, ID_PERE) VALUES ('ELVM001104006', 'Calendrier Mensuel', 'fa fa-calendar', 'module.jsp?but=reservation/reservation-calendrier-mensuel.jsp', 4, 2, 'ELM001104004');
+INSERT INTO MENUDYNAMIQUE (ID, LIBELLE, ICONE, HREF, RANG, NIVEAU, ID_PERE) VALUES ('ELVM001104007', 'Calendrier Hebdomadaire', 'fa fa-calendar', 'module.jsp?but=reservation/reservation-calendrier.jsp', 5, 2, 'ELM001104004');
+ 

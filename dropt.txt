@@ -1,0 +1,12 @@
+sqlplus / as sysdba;
+
+DROP USER asynchotel CASCADE;
+
+CREATE USER asynchotel IDENTIFIED BY asynchotel;
+GRANT CONNECT, RESOURCE TO asynchotel;
+GRANT DBA TO asynchotel;
+
+imp asynchotel/asynchotel@ORCL file=G:\ITU\S5\PROG\async-hotel-feature-async-location-voiture\async-hotel-feature-async-location-voiture\location1205.dmp full=y ignore=y;
+
+sqlplus asynchotel/asynchotel@ORCL
+

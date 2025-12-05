@@ -1,0 +1,614 @@
+-- ze colonnes rehetra dependant an'ny table vente: ananmpiakarana colonne idreservation daoly
+
+CREATE OR REPLACE  VIEW AS_BONDELIVRAISON_CLIENT_CPL (ID, REMARQUE, IDVENTE, DESIGNATION, IDBC, DATY, ETAT, IDMAGASIN, MAGASIN,IDRESERVATION) AS 
+  SELECT bl.id, bl.remarque, 
+v.id AS idvente,
+v.designation,
+bl.idbc, bl.daty, bl.etat, 
+m.id AS idmagasin,
+m.val AS magasin,
+v.IDRESERVATION
+FROM AS_BONDELIVRAISON_CLIENT bl
+LEFT JOIN magasin m ON bl.magasin=m.id
+LEFT JOIN vente v ON v.id=bl.idvente;
+
+
+CREATE OR REPLACE  VIEW AS_BONDELIVRAISONCLIENT_LIB (ID, REMARQUE, IDBC, DATY, ETAT, MAGASIN, MAGASINLIB, ETATLIB, IDVENTE, IDVENTELIB, IDORIGINE, IDCLIENT, IDCLIENTLIB,IDRESERVATION) AS 
+  select bl.ID,
+       bl.REMARQUE,
+       bl.IDBC,
+       bl.DATY,
+       bl.ETAT,
+       bl.MAGASIN,
+       m.VAL as MAGASINlib,
+       case
+           when bl.etat = 1 then 'CREE(E)'
+           when bl.etat = 11 then 'VISE(E)'
+           end as etatlib,
+       bl.idvente,
+       v.designation AS idventelib ,
+       bl.idOrigine ,
+       bl.IDCLIENT ,
+       c.NOM AS IDCLIENTLIB,
+       v.IDRESERVATION
+       from AS_BONDELIVRAISON_CLIENT bl
+    left join MAGASIN m on bl.MAGASIN = m.ID
+    LEFT JOIN vente v ON bl.idvente=v.id
+    LEFT JOIN CLIENT c ON c.ID = bl.IDCLIENT 
+    ;
+    
+   
+CREATE OR REPLACE  VIEW AVOIRFCLIB (ID, DESIGNATION, IDMAGASIN, IDMAGASINLIB, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, COMPTE, IDVENTE, IDVENTELIB, IDMOTIF, IDMOTIFLIB, IDCATEGORIE, IDCATEGORIELIB, IDDEVISE, TAUXDECHANGE, MONTANTHT, MONTANTTVA, MONTANTTTC, MONTANTHTAR, MONTANTTVAAR, MONTANTTTCAR,IDRESERVATION) AS 
+  SELECT a.ID,
+       a.DESIGNATION,
+       a.IDMAGASIN,
+       m.VAL         AS IDMAGASINLIB,
+       a.DATY,
+       a.REMARQUE,
+       a.ETAT,
+       a.IDORIGINE,
+       a.IDCLIENT,
+       t.COMPTE,
+       a.IDVENTE,
+       v.DESIGNATION AS IDVENTELIB,
+       a.IDMOTIF,
+       ma.VAL        AS IDMOTIFLIB,
+       a.IDCATEGORIE,
+       c.VAL         AS IDCATEGORIELIB,
+       ag.IDDEVISE,
+       ag.TAUXDECHANGE,
+       ag.MONTANTHT,
+       ag.MONTANTTVA,
+       ag.MONTANTTTC,
+       ag.MONTANTHTAR,
+       ag.MONTANTTVAAR,
+       ag.MONTANTTTCAR,
+       v.IDRESERVATION
+FROM AVOIRFC a
+         LEFT JOIN MAGASIN m ON m.id = a.IDMAGASIN
+         LEFT JOIN VENTE v ON v.id = a.IDVENTE
+         LEFT JOIN MOTIFAVOIRFC ma ON ma.id = a.IDMOTIF
+         LEFT JOIN CATEGORIEAVOIRFC c ON c.id = a.IDCATEGORIE
+         JOIN AVOIRFCFILLE_GRP ag ON ag.idavoirfc = a.id
+        LEFT JOIN TIERS T ON T.ID = A.IDCLIENT;
+        
+       
+       
+CREATE OR REPLACE  VIEW INSERTION_VENTE (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, IDDEVISE, ESTPREVU, DATYPREVU,IDRESERVATION) AS 
+  SELECT
+	v.ID,
+	v.DESIGNATION,
+	v.IDMAGASIN,
+	v.DATY,
+	v.REMARQUE,
+	v.ETAT,
+	v.IDORIGINE,
+	v.IDCLIENT,
+	CAST(' ' AS varchar(100)) AS iddevise,
+	v.ESTPREVU,
+	v.DATYPREVU,
+	v.IDRESERVATION
+FROM VENTE v 
+;
+
+
+
+CREATE OR REPLACE  VIEW MVTSTOCKLIB (ID, DESIGNATION, IDMAGASIN, IDOBJET, IDMAGASINLIB, IDVENTE, IDVENTELIB, IDTRANSFERT, IDTRANSFERTLIB, IDTYPEMVSTOCK, IDTYPEMVSTOCKLIB, DATY, ETAT, ETATLIB,IDRESERVATION) AS 
+  SELECT
+m.ID ,
+m.DESIGNATION ,
+m.IDMAGASIN ,
+m.IDOBJET ,
+m2.VAL  AS idMagasinlib,
+m.IDVENTE ,
+v.DESIGNATION  AS idVentelib,
+m.IDTRANSFERT ,
+CAST('' AS VARCHAR2(255)) AS idTransfertlib,
+m.IDTYPEMVSTOCK ,
+t.VAL AS idTypeMvStocklib ,
+m.DATY ,
+m.ETAT ,
+CASE
+	WHEN m.ETAT = 0
+	THEN 'ANNULEE'
+	WHEN m.ETAT = 1
+	THEN 'CREE'
+	WHEN m.ETAT = 11
+	THEN 'VALIDEE'
+END AS etatlib,
+v.IDRESERVATION
+FROM MVTSTOCK m
+LEFT JOIN TYPEMVTSTOCK t ON t.ID = m.IDTYPEMVSTOCK
+LEFT JOIN VENTE v ON v.ID = m.IDVENTE
+LEFT JOIN MAGASIN m2 ON m2.ID = m.IDMAGASIN;
+
+CREATE OR REPLACE  VIEW mvtstocklibcreer 
+AS 
+SELECT 
+m.*
+FROM MVTSTOCKLIB m 
+WHERE m.ETAT = 1 ;
+
+
+CREATE OR REPLACE VIEW mvtstocklibannuler 
+AS 
+SELECT 
+m.*
+FROM MVTSTOCKLIB m 
+WHERE m.ETAT = 0 ;
+
+
+CREATE OR REPLACE VIEW mvtstocklibvalider 
+AS 
+SELECT 
+m.*
+FROM MVTSTOCKLIB m 
+WHERE m.ETAT = 11 ;
+
+
+
+CREATE OR REPLACE  VIEW PREVISION_CPL (ID, DESIGNATION, IDCAISSE, IDCAISSELIB, IDVENTEDETAIL, IDVENTE, IDVENTELIB, IDVIREMENT, DEBIT, CREDIT, DATY, ETAT, IDOP, IDOPLIB, IDORIGINE, IDDEVISE, IDDEVISELIB, TAUX, IDTIERS, COMPTE, IDFACTURE,IDRESERVATION) AS 
+  select
+  p.id,
+  p.designation,
+  p.idcaisse,
+  c.val as idcaisselib,
+  p.idventedetail,
+  v.IDVENTE,
+  v2.designation as idventelib,
+  p.idvirement,
+  p.debit,
+  p.credit,
+ p.daty,
+ p.etat,
+ p.idop,
+  o.DESIGNATION as idoplib ,
+ p.idorigine,
+ p.iddevise,
+  p.designation as iddeviselib,
+ p.taux,
+ p.idtiers,
+ p.compte,
+ p.idfacture,
+ v2.IDRESERVATION
+  from PREVISION p
+  left join caisse c on p.idcaisse = c.id
+  left join VENTE_DETAILS v on p.IDVENTEDETAIL=v.ID
+  left join vente v2 on v2.id=v.IDVENTE
+  left join ORDONNERPAIEMENT o on o.id=p.IDOP
+  left join devise d on d.id=p.IDDEVISE;
+  
+ 
+ CREATE OR REPLACE  VIEW UPDATEVENTE (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, IDCLIENTLIB, IDDEVISE,IDRESERVATION) AS 
+  SELECT
+	v.ID,
+	v.DESIGNATION,
+	v.IDMAGASIN,
+	v.DATY,
+	v.REMARQUE,
+	v.ETAT,
+	v.IDORIGINE,
+	v.IDCLIENT,
+	c.NOM AS idClientLib,
+	v2.IDDEVISE,
+	v.IDRESERVATION
+FROM VENTE v 
+JOIN CLIENT c ON c.ID = v.IDCLIENT
+JOIN VENTEMONTANT v2 ON v2.ID = v.ID;
+
+
+CREATE OR REPLACE  VIEW VENTEALIVRER (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT,IDRESERVATION) AS 
+  SELECT
+	ID,
+	DESIGNATION,
+	IDMAGASIN,
+	DATY,
+	REMARQUE,
+	ETAT,
+	IDORIGINE,
+	IDCLIENT,
+	IDRESERVATION
+FROM
+	vente
+WHERE
+	etat <12
+	OR etat = 13 ;
+	
+
+CREATE OR REPLACE  VIEW VENTEAPAYER (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT,IDRESERVATION) AS 
+ SELECT
+	ID,
+	DESIGNATION,
+	IDMAGASIN,
+	DATY,
+	REMARQUE,
+	ETAT,
+	IDORIGINE,
+	IDCLIENT,
+	IDRESERVATION
+FROM
+	vente
+WHERE
+	etat <= 12 ;
+	
+
+CREATE OR REPLACE  VIEW VENTE_CPL (ID, DESIGNATION, IDMAGASIN, IDMAGASINLIB, DATY, REMARQUE, ETAT, ETATLIB, MONTANTTOTAL, IDDEVISE, IDCLIENT, IDCLIENTLIB, MONTANTTVA, MONTANTTTC, MONTANTTTCAR, MONTANTPAYE, MONTANTRESTE, AVOIR, TAUXDECHANGE, MONTANTREVIENT, MARGEBRUTE,IDRESERVATION) AS 
+  SELECT v.ID,
+          v.DESIGNATION,
+          v.IDMAGASIN,
+          m.VAL AS IDMAGASINLIB,
+          v.DATY,
+          v.REMARQUE,
+          v.ETAT,
+          CASE
+             WHEN v.ETAT = 1 THEN 'CREE'
+             WHEN v.ETAT = 11 THEN 'VISEE'
+             WHEN v.ETAT = 0 THEN 'ANNULEE'
+          END
+             AS ETATLIB,
+          v2.MONTANTTOTAL,
+          v2.IDDEVISE,
+          v.IDCLIENT,
+          c.NOM AS IDCLIENTLIB,
+          cast(V2.MONTANTTVA as number(30,2)) as MONTANTTVA,
+          cast(V2.MONTANTTTC as number(30,2)) as montantttc,
+          cast(V2.MONTANTTTCAR as number(30,2)) as MONTANTTTCAR,
+          cast(nvl(mv.credit,0)-nvl(ACG.MONTANTPAYE, 0) AS NUMBER(30,2)) AS montantpaye,
+          cast(V2.MONTANTTTC-nvl(mv.credit,0)-nvl(ACG.resteapayer_avr, 0) AS NUMBER(30,2)) AS montantreste,
+          nvl(ACG.MONTANTTTC_avr, 0)  as avoir,
+          v2.tauxDeChange AS tauxDeChange,v2.MONTANTREVIENT,cast((V2.MONTANTTTCAR-v2.MONTANTREVIENT) as number(20,2))  as margeBrute,
+          v.IDRESERVATION
+     FROM VENTE v
+          LEFT JOIN CLIENT c ON c.ID = v.IDCLIENT
+          LEFT JOIN MAGASIN m ON m.ID = v.IDMAGASIN
+          JOIN VENTEMONTANT v2 ON v2.ID = v.ID
+          LEFT JOIN mouvementcaisseGroupeFacture mv ON v.id=mv.IDORIGINE
+		  LEFT JOIN AVOIRFCLIB_CPL_GRP ACG on ACG.IDVENTE = v.ID;
+		  
+		 
+		 
+CREATE OR REPLACE  VIEW VENTE_CPL_ANALYSE (ID, DESIGNATION, IDMAGASIN, IDMAGASINLIB, DATY, REMARQUE, ETAT, ETATLIB, MONTANTTOTAL, MONTANTTOTALACHAT, IDPOINT, IDPOINTLIB, MONTANTREVIENT,IDRESERVATION) AS 
+  SELECT v.ID,
+       v.DESIGNATION,
+       v.IDMAGASIN,
+       m.VAL   AS IDMAGASINLIB,
+       v.DATY,
+       v.REMARQUE,
+       v.ETAT,
+       CASE
+           WHEN v.ETAT = 1
+               THEN 'CREE'
+           WHEN v.ETAT = 11
+               THEN 'EN ATTENTE LIVRAISON ET PAIEMENT'
+           WHEN v.ETAT = 0
+               THEN 'ANNULEE'
+           WHEN v.ETAT = 12 
+               THEN 'LIVRE NON PAYE'
+           WHEN v.ETAT = 13
+               THEN 'PAYE NON LIVRE'
+           WHEN v.ETAT = 14
+               THEN 'PAYE ET LIVRE'
+           END AS ETATLIB,
+       v2.MONTANTTOTAL,
+       v2.MONTANTTOTALACHAT,
+       p.ID AS IDPOINT,
+       p.VAL AS IDPOINTLIB,
+       v2.MONTANTTOTAL - v2.MONTANTTOTALACHAT AS MONTANTREVIENT,
+       v.IDRESERVATION
+FROM VENTE v
+         LEFT JOIN MAGASIN m ON m.ID = v.IDMAGASIN
+         LEFT JOIN POINT p ON m.IDPOINT = p.ID
+         JOIN VENTEMONTANT v2 ON v2.ID = v.ID;
+         
+        
+        
+CREATE OR REPLACE  VIEW VENTE_CPL_AVEC_MONTANT (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, IDCLIENTLIB, IDMAGASINLIB, MONTANTTC, MONTANTTTC, MONTANTPAYE, ENCAISSEMENTCHANGE, MONTANTRESTE, IDDEVISE,IDRESERVATION) AS 
+  SELECT 
+v.ID,v.DESIGNATION,v.IDMAGASIN,v.DATY,v.REMARQUE,v.ETAT,v.IDORIGINE,v.IDCLIENT,
+c.NOM AS idClientLib,
+m.VAL AS idMagasinLib,
+nvl(vg.montanttc,0) AS montanttc,
+nvl(vg.montanttc,0) AS montantttc,
+nvl(ve.montantpaye*vg.TAUXDECHANGE,0) AS montantpaye,
+nvl(ve.montantpaye * vg.TAUXDECHANGE ,0) AS encaissementchange,
+nvl(vg.montanttc,0) - nvl(ve.montantpaye*vg.TAUXDECHANGE,0)  AS montantreste,
+vg.idDevise,
+v.IDRESERVATION
+FROM ventedetails_grp vg 
+LEFT JOIN VENTE v ON v.id = vg.IDVENTE
+LEFT JOIN vente_encaisse ve ON ve.IDVENTE = v.id
+LEFT JOIN CLIENT c ON c.id = v.idclient
+LEFT JOIN MAGASIN m ON m.id  = v.idmagasin;
+
+
+
+CREATE OR REPLACE  VIEW VENTE_CPL_AVEC_MONTANT_EUR (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, IDCLIENTLIB, IDMAGASINLIB, MONTANTTC, MONTANTTTC, MONTANTPAYE, ENCAISSEMENTCHANGE, MONTANTRESTE, IDDEVISE,IDRESERVATION) AS 
+  SELECT 
+v.ID,v.DESIGNATION,v.IDMAGASIN,v.DATY,v.REMARQUE,v.ETAT,v.IDORIGINE,v.IDCLIENT,
+c.NOM AS idClientLib,
+m.VAL AS idMagasinLib,
+nvl(vg.montanttc,0) AS montanttc,
+nvl(vg.montanttc,0) AS montantttc,
+nvl(ve.montantpaye,0) AS montantpaye,
+nvl(ve.montantpaye,0) AS encaissementchange,
+nvl(vg.montanttc,0) - nvl(ve.montantpaye,0)  AS montantreste,
+vg.idDevise,
+v.IDRESERVATION
+FROM ventedetails_grp vg 
+LEFT JOIN VENTE v ON v.id = vg.IDVENTE
+LEFT JOIN vente_encaisse ve ON ve.IDVENTE = v.id
+LEFT JOIN CLIENT c ON c.id = v.idclient
+LEFT JOIN MAGASIN m ON m.id  = v.idmagasin
+WHERE vg.idDevise='EUR';
+
+
+
+CREATE OR REPLACE  VIEW VENTE_CPL_AVEC_MONTANT_MGA (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, IDCLIENTLIB, IDMAGASINLIB, MONTANTTC, MONTANTTTC, MONTANTPAYE, ENCAISSEMENTCHANGE, MONTANTRESTE, IDDEVISE,IDRESERVATION) AS 
+  SELECT 
+v.ID,v.DESIGNATION,v.IDMAGASIN,v.DATY,v.REMARQUE,v.ETAT,v.IDORIGINE,v.IDCLIENT,
+c.NOM AS idClientLib,
+m.VAL AS idMagasinLib,
+nvl(vg.montanttc,0) AS montanttc,
+nvl(vg.montanttc,0) AS montantttc,
+nvl(ve.montantpaye,0) AS montantpaye,
+nvl(ve.montantpaye,0) AS encaissementchange,
+nvl(vg.montanttc,0) - nvl(ve.montantpaye,0)  AS montantreste,
+vg.idDevise,
+v.IDRESERVATION
+FROM ventedetails_grp vg 
+LEFT JOIN VENTE v ON v.id = vg.IDVENTE
+LEFT JOIN vente_encaisse ve ON ve.IDVENTE = v.id
+LEFT JOIN CLIENT c ON c.id = v.idclient
+LEFT JOIN MAGASIN m ON m.id  = v.idmagasin
+WHERE vg.idDevise='AR'
+;
+
+
+
+CREATE OR REPLACE  VIEW VENTE_CPL_AVEC_MONTANT_SANSDEV (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, IDCLIENTLIB, IDMAGASINLIB, MONTANTTTC, MONTANTPAYE, ENCAISSEMENTCHANGE, MONTANTRESTE, IDDEVISE,IDRESERVATION) AS 
+  SELECT 
+v.ID,v.DESIGNATION,v.IDMAGASIN,v.DATY,v.REMARQUE,v.ETAT,v.IDORIGINE,v.IDCLIENT,
+c.NOM AS idClientLib,
+m.VAL AS idMagasinLib,
+nvl(vg.montanttc,0) AS montantttc,
+nvl(ve.montantpaye,0) AS montantpaye,
+0 AS encaissementchange,
+nvl(vg.montanttc,0) - nvl(ve.montantpaye ,0) AS montantreste,
+vg.idDevise,
+v.IDRESERVATION
+FROM vente_grp_sansdevise vg 
+LEFT JOIN VENTE v ON v.id = vg.IDVENTE
+LEFT JOIN vente_encaisse ve ON ve.IDVENTE = v.id
+LEFT JOIN CLIENT c ON c.id = v.idclient
+LEFT JOIN MAGASIN m ON m.id  = v.idmagasin;
+
+
+
+
+
+CREATE OR REPLACE  VIEW VENTE_CPL_AVEC_MONTANT_USD (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, IDCLIENTLIB, IDMAGASINLIB, MONTANTTC, MONTANTTTC, MONTANTPAYE, ENCAISSEMENTCHANGE, MONTANTRESTE, IDDEVISE,IDRESERVATION) AS 
+  SELECT 
+v.ID,v.DESIGNATION,v.IDMAGASIN,v.DATY,v.REMARQUE,v.ETAT,v.IDORIGINE,v.IDCLIENT,
+c.NOM AS idClientLib,
+m.VAL AS idMagasinLib,
+nvl(vg.montanttc,0) AS montanttc,
+nvl(vg.montanttc,0) AS montantttc,
+nvl(ve.montantpaye,0) AS montantpaye,
+nvl(ve.montantpaye,0) AS encaissementchange,
+nvl(vg.montanttc,0) - nvl(ve.montantpaye,0)  AS montantreste,
+vg.idDevise,
+v.IDRESERVATION
+FROM ventedetails_grp vg 
+LEFT JOIN VENTE v ON v.id = vg.IDVENTE
+LEFT JOIN vente_encaisse ve ON ve.IDVENTE = v.id
+LEFT JOIN CLIENT c ON c.id = v.idclient
+LEFT JOIN MAGASIN m ON m.id  = v.idmagasin
+WHERE vg.idDevise='USD';
+
+
+
+
+CREATE OR REPLACE  VIEW VENTE_DETAILS_CPL_2 (ID, IDVENTE, IDVENTELIB, IDPRODUIT, IDPRODUITLIB, IDORIGINE, QTE, PU, PUTOTAL, PUTOTALACHAT, PUREVIENT, IDCATEGORIE, IDCATEGORIELIB, DATY, IDMAGASIN, IDMAGASINLIB, IDPOINT, IDPOINTLIB, IDDEVISE, IDDEVISELIB,IDRESERVATION) AS 
+  SELECT vd.ID,
+       vd.IDVENTE,
+       v.DESIGNATION          AS IDVENTELIB,
+       vd.IDPRODUIT,
+       p.LIBELLE                  AS IDPRODUITLIB,
+       vd.IDORIGINE,
+       vd.QTE,
+       nvl(vd.PU, 0)          AS PU,
+       CAST(nvl(vd.PU * vd.QTE*(1-nvl(vd.REMISE,0)/100), 0) +nvl(vd.PU * vd.QTE*(1-nvl(vd.REMISE,0)/100) *(vd.TVA/100), 0) AS number(30,2)) AS puTotal,
+       CAST(nvl(vd.PUACHAT * vd.QTE, 0) AS number(30,2)) AS puTotalAchat,
+       CAST(nvl(vd.PU * vd.QTE, 0) - nvl(vd.PUACHAT * vd.QTE, 0) AS number(30,2)) AS puRevient,
+       c.ID  AS IDCATEGORIE,
+       c.VAL AS IDCATEGORIELIB,
+       v.DATY AS daty,
+       m.ID AS IDMAGASIN,
+       m.VAL AS IDMAGASINLIB,
+       p1.ID AS IDPOINT,
+       p1.VAL AS IDPOINTLIB,
+       vd.IDDEVISE,
+       vd.IDDEVISE AS IDDEVISELIB,
+       v.IDRESERVATION
+FROM VENTE_DETAILS vd
+         LEFT JOIN VENTE v ON v.ID = vd.IDVENTE
+         LEFT JOIN MAGASIN m ON m.ID = v.IDMAGASIN
+         LEFT JOIN AS_INGREDIENTS p ON p.ID = vd.IDPRODUIT
+         LEFT JOIN POINT p1 ON p1.ID = m.IDPOINT 
+         LEFT JOIN CATEGORIE c  ON p.CATEGORIEINGREDIENT  = c.ID;
+         
+        
+        
+        
+  CREATE OR REPLACE  VIEW VENTE_DETAILS_CPL_2_VISEE (ID, IDVENTE, IDVENTELIB, IDPRODUIT, IDPRODUITLIB, IDORIGINE, QTE, PU, PUTOTAL, PUTOTALACHAT, PUREVIENT, IDCATEGORIE, IDCATEGORIELIB, DATY, IDMAGASIN, IDMAGASINLIB, IDPOINT, IDPOINTLIB, IDDEVISE, IDDEVISELIB, MARGEBRUTE,IDRESERVATION) AS 
+  SELECT vd.ID,
+       vd.IDVENTE,
+       v.DESIGNATION          AS IDVENTELIB,
+       vd.IDPRODUIT ,
+       nvl(i.LIBELLE,p.VAL)                  AS IDPRODUITLIB,
+       vd.IDORIGINE,
+       vd.QTE,
+       nvl(vd.PU, 0)          AS PU,
+       CAST(nvl(vd.PU * vd.QTE*(1-nvl(vd.REMISE,0)/100), 0) +nvl(vd.PU * vd.QTE*(1-nvl(vd.REMISE,0)/100) *(vd.TVA/100), 0) AS number(30,2)) AS puTotal,
+       CAST(nvl(vd.PUACHAT * vd.QTE, 0) AS number(30,2)) AS puTotalAchat,
+       CAST(nvl(vd.PU * vd.QTE, 0) - nvl(vd.PUACHAT * vd.QTE, 0) AS number(30,2)) AS puRevient,
+       c.ID  AS IDCATEGORIE,
+       c.VAL AS IDCATEGORIELIB,
+       v.DATY AS daty,
+       m.ID AS IDMAGASIN,
+       m.VAL AS IDMAGASINLIB,
+       p1.ID AS IDPOINT,
+       p1.VAL AS IDPOINTLIB,
+       vd.IDDEVISE,
+       vd.IDDEVISE AS IDDEVISELIB,
+       cast(nvl((CAST(nvl(vd.PU * vd.QTE*(1-nvl(vd.REMISE,0)/100), 0) +nvl(vd.PU * vd.QTE*(1-nvl(vd.REMISE,0)/100) *(vd.TVA/100), 0) AS number(30,2))-(vd.QTE*vd.PUREVIENT)),0) as number(20,2)) as margeBrute,
+	   v.IDRESERVATION
+FROM VENTE_DETAILS vd
+         LEFT JOIN VENTE v ON v.ID = vd.IDVENTE
+         LEFT JOIN MAGASIN m ON m.ID = v.IDMAGASIN
+         LEFT JOIN PRODUIT p ON p.ID = vd.IDPRODUIT
+         LEFT JOIN AS_INGREDIENTS i ON i.ID = vd.IDPRODUIT
+         LEFT JOIN POINT p1 ON p1.ID = m.IDPOINT
+         LEFT JOIN CATEGORIE c  ON p.IDCATEGORIE  = c.ID
+WHERE v.ETAT >= 11;
+
+
+
+
+
+
+CREATE OR REPLACE  VIEW VENTE_DETAILS_LIB (ID, IDVENTE, IDVENTELIB, IDPRODUIT, IDPRODUITLIB, IDORIGINE, QTE, PU, PUTOTAL, PUACHAT,IDRESERVATION) AS 
+  SELECT vd.ID,
+       vd.IDVENTE,
+       v.DESIGNATION    AS IDVENTELIB,
+       vd.IDPRODUIT,
+       p.VAL            AS IDPRODUITLIB,
+       vd.IDORIGINE,
+       vd.QTE,
+       vd.PU,
+       cast((vd.QTE * vd.PU) as NUMBER(30,2)) AS puTotal,
+       vd.PuAchat AS PUACHAT,
+       v.IDRESERVATION
+FROM VENTE_DETAILS vd
+         LEFT JOIN VENTE v ON v.ID = vd.IDVENTE
+         LEFT JOIN PRODUIT p ON p.ID = vd.IDPRODUIT;
+         
+        
+        
+        
+ CREATE OR REPLACE  VIEW VENTE_ENCAISSE (IDVENTE, IDRESERVATION , MONTANTPAYE) AS 
+  SELECT 
+v.id AS IDVENTE,
+v.IDRESERVATION,
+sum( nvl(ed.MONTANT,0) ) AS montantpaye
+FROM ENCAISSEMENT_DETAILS ed 
+LEFT JOIN ENCAISSEMENT e ON e.id = ed.IDENCAISSEMENT
+LEFT JOIN VENTE v ON v.id = e.IDORIGINE
+GROUP BY v.id ,v.IDRESERVATION ;
+
+
+
+CREATE OR REPLACE  VIEW VENTE_LIB (ID, DESIGNATION, IDMAGASIN, IDMAGASINLIB, DATY, REMARQUE, ETAT, ETATLIB, IDCLIENT, IDCLIENTLIB,IDRESERVATION) AS 
+  SELECT
+v.ID ,
+v.DESIGNATION ,
+v.IDMAGASIN ,
+m.VAL AS IDMAGASINLIB,
+v.DATY ,
+v.REMARQUE ,
+v.ETAT ,
+CASE
+	WHEN v.ETAT = 1
+	THEN 'CREE'
+	WHEN v.ETAT = 11
+	THEN 'VALIDEE'
+	WHEN v.ETAT = 0
+	THEN 'ANNULEE'
+END AS ETATLIB,
+v.IDCLIENT ,
+c.NOM AS IDCLIENTLIB,
+v.IDRESERVATION
+FROM VENTE v
+LEFT JOIN MAGASIN m ON m.ID = v.IDMAGASIN
+LEFT JOIN CLIENT c ON c.ID = v.IDCLIENT;
+
+CREATE OR REPLACE  VIEW VENTE_LIB_CREE 
+AS 
+SELECT 
+vl.* 
+FROM VENTE_LIB vl 
+WHERE vl.ETAT = 1 ;
+
+
+CREATE OR REPLACE VIEW VENTE_LIB_VISEE 
+AS 
+SELECT 
+vl.* 
+FROM VENTE_LIB vl 
+WHERE vl.ETAT = 11 ;
+
+
+CREATE OR REPLACE VIEW VENTE_LIB_ANNULEE 
+AS 
+SELECT 
+vl.* 
+FROM VENTE_LIB vl 
+WHERE vl.ETAT = 0 ;
+
+
+
+CREATE OR REPLACE  VIEW VENTE_MERE_MONTANT (ID, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDORIGINE, IDCLIENT, MONTANTHT, MONTANTTVA, MONTANTTTC, TAUXDECHANGE, CLIENTLIB, COMPTE,IDRESERVATION) AS 
+  select v.ID,v.DESIGNATION,v.IDMAGASIN,v.DATY,v.REMARQUE,v.ETAT,v.IDORIGINE,v.IDCLIENT,
+       vt.MONTANTHT,
+       vt.MONTANTTVA,
+       vt.MONTANTTTC,
+       vt.TAUXDECHANGE,
+        CL.NOM AS CLIENTLIB,
+       CL.COMPTE,
+       v.IDRESERVATION
+from VENTE v
+left join VENTE_GRP_TOUS vt on vt.IDVENTE = v.id
+left join CLIENT CL on CL.ID = v.IDCLIENT;
+
+
+CREATE OR REPLACE  VIEW VENTE_MF (ID, IDVENTE, IDPRODUIT, IDORIGINE, QTE, PU, REMISE, TVA, PUACHAT, PUVENTE, DESIGNATION, IDMAGASIN, DATY, REMARQUE, ETAT, IDCLIENT, COMPTE, MONTANTHT, MONTANTTVA, MONTANTTTC, TAUXDECHANGE,IDRESERVATION) AS 
+  select vd.ID,vd.IDVENTE,vd.IDPRODUIT,vd.IDORIGINE,vd.QTE,vd.PU,vd.REMISE,vd.TVA,vd.PUACHAT,vd.PUVENTE,
+       v.DESIGNATION,
+       v.IDMAGASIN,
+       v.DATY,
+       v.REMARQUE,
+       v.ETAT,
+       v.IDCLIENT,
+       vd.compte,
+       cast((PU * qte) as NUMBER(30, 2)) as montantHT,
+       cast((PU * qte*(tva/100)) as NUMBER(30, 2)) as montantTVA,
+       cast(PU * qte + (PU * qte*(tva/100))  as NUMBER(30, 2)) as montantTTC,
+       vd.TAUXDECHANGE AS tauxdechange,
+       v.IDRESERVATION
+from VENTE_DETAILS vd
+         left outer join VENTE V on V.ID = vd.IDVENTE 
+         
+        ;
+        
+       
+CREATE OR REPLACE  VIEW VENTEMONTANT (ID, MONTANTTOTAL, MONTANTTOTALACHAT, MONTANTTVA, MONTANTTTC, IDDEVISE, TAUXDECHANGE, MONTANTTTCAR, MONTANTREVIENT,IDRESERVATION) AS 
+  SELECT v.ID,
+            cast(SUM ((1-nvl(vd.remise/100,0))*(NVL (vd.QTE, 0) * NVL (vd.PU, 0))) as number(30,2)) AS montanttotal,
+            cast(SUM ( (NVL (vd.QTE, 0) * NVL (vd.PuAchat, 0))) as number(30,2)) AS montanttotalachat,
+            cast(SUM ((1-nvl(vd.remise/100,0))* (NVL (vd.QTE, 0) * NVL (vd.PU, 0))* (NVL (VD.TVA , 0))/100) as number(30,2)) AS montantTva,
+            cast(SUM ((1-nvl(vd.remise/100,0))* (NVL (vd.QTE, 0) * NVL (vd.PU, 0))* (NVL (VD.TVA , 0))/100)+SUM ((1-nvl(vd.remise/100,0))* (NVL (vd.QTE, 0) * NVL (vd.PU, 0)))as number(30,2))  as montantTTC,
+            NVL (vd.IDDEVISE,'AR') AS IDDEVISE,
+            NVL(avg(vd.tauxDeChange),1 ) AS tauxDeChange,
+            cast(SUM ( (1-nvl(vd.remise/100,0))*(NVL (vd.QTE, 0) * NVL (vd.PU, 0)*NVL(VD.TAUXDECHANGE,1) )* (NVL (VD.TVA , 0))/100)+SUM ((1-nvl(vd.remise/100,0))* (NVL (vd.QTE, 0) * NVL (vd.PU, 0)*NVL(VD.TAUXDECHANGE,1)))as number(30,2)) as montantTTCAR,
+            cast(sum(vd.PUREVIENT*vd.QTE) as number(20,2)) as montantRevient  ,
+            v.IDRESERVATION
+        FROM VENTE_DETAILS vd LEFT JOIN VENTE v ON v.ID = vd.IDVENTE
+   GROUP BY v.ID, vd.IDDEVISE,v.IDRESERVATION;
+   
+  
+  
+ CREATE OR REPLACE  VIEW VENTE_VALIDEE (ID, IDVENTE, IDPRODUIT, IDORIGINE, QTE, PU,IDRESERVATION) AS 
+  SELECT 
+vd.ID,vd.IDVENTE,vd.IDPRODUIT,vd.IDORIGINE,vd.QTE,vd.PU,v.IDRESERVATION
+FROM VENTE_DETAILS vd 
+LEFT JOIN VENTE v ON v.ID = vd.IDVENTE AND v.ETAT > 1 ;

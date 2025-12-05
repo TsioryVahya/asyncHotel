@@ -1,0 +1,5 @@
+build-file/
+start-wildfly.bat
+location1205.dmp
+build.xml
+asynclocation-war/web/dateBuild.txt

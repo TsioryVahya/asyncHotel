@@ -1,0 +1,147 @@
+@font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 100 1000;
+    font-display: swap;
+    src: url(../fonts/DMSans-VariableFont_opsz.ttf) format('truetype');
+}
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #F6F6F3;
+}
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    background-color: white;
+}
+th, td {
+    padding: 24px 16px;
+    border-bottom: 1px solid #949289;
+    text-align: left;
+}
+th{
+    background: #EDECE7;
+    border-bottom: 1px solid #949289;
+}
+.table-container {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #949289;
+}
+.total-container{
+    background: #fff;
+    padding: 16px 24px;
+    border-radius: 8px;
+    border: 1px solid #949289;
+}
+.total-head{
+    padding-bottom: 16px;
+    border-bottom: 1px solid #EAEAEA;
+}
+.total-container {
+    width: 40%;
+    width: 278px;
+}
+
+.table-container {
+    /* overflow: hidden; */
+    overflow: auto;
+    width: 100%;
+    background-color: white;
+}
+
+body > div:nth-child(1) {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    align-items: end;
+    gap: 20px;
+}
+
+.d-flex.header-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h5.head {
+    color: #000;
+    text-align: right;
+    font-family: "DM Sans";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin: 0;
+    width: 100px;
+}
+
+p.desc {
+    color: #000;
+    text-align: right;
+    font-family: "DM Sans";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    margin: 8px;
+    width: 100px;
+}
+
+.total-desc {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    align-items: baseline;
+}
+
+h6 {
+    color: #999;
+    text-align: right;
+    font-family: "DM Sans";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    margin: 0;
+}
+
+#totalfinal {
+    color: #03045e;
+    text-align: right;
+    font-family: "DM Sans";
+    font-size: 36px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    margin: 0;
+}
+.total-body {
+    padding-top: 8px;
+}
+h2 {
+    color: #111827;
+    font-family: "DM Sans";
+    font-size: 36px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+.logo{
+    height: 64px;
+}
+#image-product {
+    max-width: 50%;
+}
