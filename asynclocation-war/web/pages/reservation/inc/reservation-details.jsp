@@ -17,7 +17,7 @@
     t.setNomTable("RESERVATIONDETAILS_LIB_MARGE");
     String listeCrt[] = {};
     String listeInt[] = {};
-    String libEntete[] = {"id", "libelleproduit", "qte","pu","daty","heure","remarque","distanceestimation", "distancereelle","montant", "revient", "marge"};
+    String libEntete[] = {"id", "idVoitureLib", "libelleproduit", "qte","pu","daty","heure","remarque","distanceestimation", "distancereelle","montant", "revient", "marge", "htmlAction"};
     PageRecherche pr = new PageRecherche(t, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
     pr.setUtilisateur((user.UserEJB) session.getValue("u"));
     pr.setLien((String) session.getValue("lien"));
@@ -31,7 +31,7 @@
 
 <div class="box-body">
   <%
-    String libEnteteAffiche[] =  {"ID", "Voitures", "Quantit&eacute;","Prix unitaire","Date de R&eacute;servation","Heure","Remarque","Estimation Distance", "Distance R&eacute;elle","Montant", "Revient", "Marge"};
+    String libEnteteAffiche[] =  {"ID", "Voiture", "Produit", "Quantit&eacute;","Prix unitaire","Date de R&eacute;servation","Heure","Remarque","Estimation Distance", "Distance R&eacute;elle","Montant", "Revient", "Marge", "Action"};
     pr.getTableau().setLibelleAffiche(libEnteteAffiche);
     if(pr.getTableau().getHtml() != null){
       out.println(pr.getTableau().getHtml());

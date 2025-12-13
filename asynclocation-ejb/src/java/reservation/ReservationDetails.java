@@ -285,4 +285,12 @@ public class ReservationDetails extends ClassFille
         }
         super.controlerDelete(c);
     }
+
+    @Override
+    public void controlerUpdate(Connection c) throws Exception {
+        // super.controlerUpdate(c); // Eviter NPE dans ClassFille
+        if (this.getIdmere() == null || this.getIdmere().trim().compareTo("") == 0) {
+            throw new Exception("Id mere obligatoire pour une fille");
+        }
+    }
 }

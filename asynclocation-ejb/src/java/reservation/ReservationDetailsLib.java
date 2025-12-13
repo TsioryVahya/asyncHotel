@@ -148,6 +148,10 @@ public class ReservationDetailsLib extends ReservationDetails implements ClassIA
         return ret;
     }
 
+    public String getHtmlAction() {
+        return "<a href='module.jsp?but=reservation/reservation-details-modif.jsp&id="+this.getId()+"&idMere="+this.getIdmere()+"' class='btn btn-warning'>Changer</a>";
+    }
+
     public ReservationDetailsLib() throws Exception {
         super();
         setNomTable("RESERVATIONDETAILS_LIB");

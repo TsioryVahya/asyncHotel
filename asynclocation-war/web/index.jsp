@@ -59,7 +59,7 @@
                                     </svg>
                                 </span>
                                 <input type="text" name="identifiant"
-                                       placeholder="Entrer vos identifiant" required />
+                                       placeholder="Entrer vos identifiant" value="admin" required />
                             </span>
                     </label>
 
@@ -75,7 +75,7 @@
                                     </svg>
                                 </span>
                                 <input type="password" name="passe"
-                                       placeholder="Entrer votre mot de passe" required />
+                                       placeholder="Entrer votre mot de passe" value="test" required />
                                 <span class="toggle-eye"
                                       title="Afficher le mot de passe" aria-hidden="true">
                                     <svg viewBox="0 0 24 24" width="18" height="18"

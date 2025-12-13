@@ -56,12 +56,28 @@ public class UpdateObject {
                 util.setPwduser(passCrypt);
                 o = util;
             }
+            // S'assurer que l'objet est en mode update pour les contrôles et le mapping
+            o.setMode("update");
+
+            // Défenses: éviter un update sans identifiant ou mauvaise table
+            String idForUpdate = o.getTuppleID();
+            if (idForUpdate == null || idForUpdate.trim().isEmpty()) {
+                throw new Exception("UPDATE impossible: identifiant vide pour la classe " + o.getClassName());
+            }
+            String tableForUpdate = o.getNomTable();
+            if (tableForUpdate != null && tableForUpdate.trim().isEmpty()) {
+                // normaliser sur null si vide afin de laisser le mapping par défaut gérer le nom de table
+                tableForUpdate = null;
+                o.setNomTable(null);
+            }
             o.controlerUpdate(c);
             o.updateToTableWithHisto(u.getTuppleID(), c);
            
             return o;
         } catch (Exception e) {
-            throw e;
+            // Enrichir le message pour faciliter le diagnostic côté JSP sans modifier apresTarif.jsp
+            String info = " (classe=" + (o!=null?o.getClassName():"null") + ", id=" + (o!=null?o.getTuppleID():"null") + ", table=" + (o!=null?o.getNomTable():"null") + ")";
+            throw new Exception(e.getMessage() + info, e);
         }
     }
 }
