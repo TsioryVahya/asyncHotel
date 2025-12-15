@@ -300,7 +300,7 @@ public class ReservationDetails extends ClassFille
         if (this.getIdmere() == null || this.getIdmere().trim().compareTo("") == 0) {
             throw new Exception("Id mere obligatoire pour une fille");
         }
-    
+
         // Règle métier: sur toute baisse de PU, appliquer la politique selon l'acteur
         try {
             // Charger l'état actuel en base pour comparaison
@@ -309,20 +309,29 @@ public class ReservationDetails extends ClassFille
             if (courant != null) {
                 double oldPu = courant.getPu();
                 double newPu = this.getPu();
-    
-                if (newPu < oldPu) {
-                    // Acteur envoyé par le formulaire (bouton Loueur/Locataire)
-                    String acteur = null;
-                    try { acteur = this.getActeur(); } catch (Exception ignore) {}
-    
-                    if (acteur != null && acteur.equalsIgnoreCase("LOUEUR")) {
-                        // Remise 10% sur le NOUVEAU PU soumis (ex: 100000 -> 90000)
+
+                // Acteur envoyé par le formulaire (bouton Loueur/Locataire)
+                String acteur = null;
+                try { acteur = this.getActeur(); } catch (Exception ignore) {}
+
+                if (acteur != null && acteur.equalsIgnoreCase("LOUEUR")) {
+                    // Cas LOUEUR:
+                    if (newPu < oldPu) {
+                        // Remise 10% sur le nouveau prix soumis (ex: 100000 -> 90000)
                         double puRemise = Math.round(newPu * 0.9);
                         this.setPu(puRemise);
-                    } else {
-                        // Baisse refusée pour non-Loueur -> conserver l'ancien PU
+                    } else if (newPu > oldPu) {
+                        // Interdire la hausse pour Loueur -> garder l'ancien PU
                         this.setPu(oldPu);
                     }
+                    // Si égal, on ne change rien
+                } else {
+                    // Cas NON-LOUEUR (Locataire, etc.)
+                    if (newPu < oldPu) {
+                        // Interdire la baisse -> garder l'ancien PU
+                        this.setPu(oldPu);
+                    }
+                    // Si >= ancien, on laisse tel quel (hausse autorisée)
                 }
             }
         } catch (Exception ex) {
