@@ -24,8 +24,14 @@ pu.getFormu().getChamp("idproduit").setPageAppelComplete("produits.Ingredients",
                                         <% out.println(pu.getFormu().getHtmlInsert()); %>
                                             <div class="row">
                                                 <div class="col-md-12">
-                                                    <button class="btn btn-primary pull-right" name="Submit2"
-                                                        type="submit">Valider</button>
+                                                <div class="btn-group pull-right" role="group" aria-label="valider-roles">
+                                                    <button class="btn btn-primary" name="acteur" value="LOUEUR" type="submit">
+                                                    Valider (Loueur)
+                                                    </button>
+                                                    <button class="btn btn-secondary" name="acteur" value="LOCATAIRE" type="submit" style="margin-left:8px">
+                                                    Valider (Locataire)
+                                                    </button>
+                                                </div>
                                                 </div>
                                             </div>
                                             <input name="acte" type="hidden" id="acte" value="update">

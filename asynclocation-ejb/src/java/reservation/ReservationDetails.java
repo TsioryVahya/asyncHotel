@@ -25,10 +25,19 @@ public class ReservationDetails extends ClassFille
     int nbDemiJournee;
     String idVoiture;
     String idResadetails;
+    String acteur;
 
     public double getMontantCalcule()
     {
         return this.getQte()*this.getPu();
+    }
+
+    public String getActeur() {
+        return acteur;
+    }
+    
+    public void setActeur(String acteur) {
+        this.acteur = acteur;
     }
 
     public  String getNomClasseMere() {
@@ -285,12 +294,40 @@ public class ReservationDetails extends ClassFille
         }
         super.controlerDelete(c);
     }
-
     @Override
     public void controlerUpdate(Connection c) throws Exception {
         // super.controlerUpdate(c); // Eviter NPE dans ClassFille
         if (this.getIdmere() == null || this.getIdmere().trim().compareTo("") == 0) {
             throw new Exception("Id mere obligatoire pour une fille");
+        }
+    
+        // Règle métier: sur toute baisse de PU, appliquer la politique selon l'acteur
+        try {
+            // Charger l'état actuel en base pour comparaison
+            // On utilise explicitement "reservationdetails" pour éviter les soucis de casse
+            ReservationDetails courant = (ReservationDetails) new ReservationDetails().getById(this.getId(), "reservationdetails", c);
+            if (courant != null) {
+                double oldPu = courant.getPu();
+                double newPu = this.getPu();
+    
+                if (newPu < oldPu) {
+                    // Acteur envoyé par le formulaire (bouton Loueur/Locataire)
+                    String acteur = null;
+                    try { acteur = this.getActeur(); } catch (Exception ignore) {}
+    
+                    if (acteur != null && acteur.equalsIgnoreCase("LOUEUR")) {
+                        // Remise 10% sur le NOUVEAU PU soumis (ex: 100000 -> 90000)
+                        double puRemise = Math.round(newPu * 0.9);
+                        this.setPu(puRemise);
+                    } else {
+                        // Baisse refusée pour non-Loueur -> conserver l'ancien PU
+                        this.setPu(oldPu);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            // Ne pas bloquer l'update si la comparaison échoue; laisser les autres contrôles s'appliquer
+            // (Optionnel: log)
         }
     }
 }
