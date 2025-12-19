@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class ReservationDetails extends ClassFille
 {
@@ -191,6 +193,69 @@ public class ReservationDetails extends ClassFille
         this.preparePk("RESADET", "GETSEQRESERVATIONDETAILS");
         this.setId(makePK(c));
     }
+
+
+    private String resolveVoitureId(Connection c) throws Exception {
+        if (this.getIdVoiture() != null && !this.getIdVoiture().trim().isEmpty()) {
+            return this.getIdVoiture();
+        }
+        if (this.getIdproduit() == null || this.getIdproduit().trim().isEmpty()) {
+            return null;
+        }
+        boolean openedHere = false;
+        try {
+            if (c == null) { c = new utilitaire.UtilDB().GetConn(); openedHere = true; }
+            String sql = "SELECT idvoiture FROM AS_INGREDIENTS_LIB WHERE id = ?";
+            try (PreparedStatement ps = c.prepareStatement(sql)) {
+                ps.setString(1, this.getIdproduit());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) return rs.getString(1);
+                }
+            }
+            return null;
+        } finally {
+            if (openedHere && c != null) try { c.close(); } catch (Exception ignore) {}
+        }
+    }
+    private void assertNoOpenPanne(Connection c) throws Exception {
+        // Si pas de date ou pas de voiture à vérifier, on ne bloque pas
+        if (this.getDaty() == null) return;
+        String voitureId = resolveVoitureId(c);
+        if (voitureId == null || voitureId.trim().isEmpty()) return;
+    
+        boolean openedHere = false;
+        try {
+            if (c == null) { c = new utilitaire.UtilDB().GetConn(); openedHere = true; }
+    
+            // Panne ouverte si: existe p dans PANNE pour la voiture avec p.DATEPANNE <= daty
+            // et il n'existe pas de FINPANNE avec datefin < daty
+            String sql =
+                "SELECT 1 " +
+                "FROM PANNE p " +
+                "WHERE p.IDVOITURE = ? " +
+                "  AND p.DATEPANNE <= ? " +
+                "  AND NOT EXISTS ( " +
+                "        SELECT 1 FROM FINPANNE f " +
+                "        WHERE f.IDPANNE = p.ID " +
+                "          AND f.DATEFIN < ? " +
+                "  ) " +
+                "  AND ROWNUM = 1";
+            try (PreparedStatement ps = c.prepareStatement(sql)) {
+                ps.setString(1, voitureId);
+                ps.setDate(2, this.getDaty());
+                ps.setDate(3, this.getDaty());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        throw new Exception("Voiture indisponible: panne ouverte pour " + voitureId +
+                            " à la date " + this.getDaty() + ".");
+                    }
+                }
+            }
+        } finally {
+            if (openedHere && c != null) try { c.close(); } catch (Exception ignore) {}
+        }
+    }
+
     public List<ReservationDetails> decomposer() throws Exception {
         List<ReservationDetails> res = new ArrayList<ReservationDetails>();
         for(int i=1;i<=this.getQte();i++) {
@@ -286,6 +351,14 @@ public class ReservationDetails extends ClassFille
                 ", nbDemiJournee=" + nbDemiJournee +
                 '}';
     }
+    @Override
+    public void controlerInsert(Connection c) throws Exception {
+        if (this.getIdmere() == null || this.getIdmere().trim().compareTo("") == 0) {
+            throw new Exception("Id mere obligatoire pour une fille");
+        }
+        // Bloquer si panne ouverte
+        assertNoOpenPanne(c);
+    }
 
     @Override
     public void controlerDelete(Connection c) throws Exception {
@@ -300,7 +373,8 @@ public class ReservationDetails extends ClassFille
         if (this.getIdmere() == null || this.getIdmere().trim().compareTo("") == 0) {
             throw new Exception("Id mere obligatoire pour une fille");
         }
-
+        assertNoOpenPanne(c);
+        
         // Règle métier: sur toute baisse de PU, appliquer la politique selon l'acteur
         try {
             // Charger l'état actuel en base pour comparaison

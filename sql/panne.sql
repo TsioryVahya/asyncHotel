@@ -1,0 +1,55 @@
+-- Oracle DDL for PANNE and FINPANNE
+-- Schema: ASYNCHOTEL
+
+-- Table PANNE: enregistre les pannes de voitures
+CREATE TABLE PANNE (
+  ID           VARCHAR2(20)    PRIMARY KEY,
+  IDVOITURE    VARCHAR2(20)    NOT NULL,
+  DATEPANNE    DATE            NOT NULL,
+  MOTIF        VARCHAR2(255)   NULL
+);
+
+-- Index de recherche par voiture
+CREATE INDEX IDX_PANNE_IDVOITURE ON PANNE(IDVOITURE);
+
+-- Table FINPANNE: clôture d'une panne
+CREATE TABLE FINPANNE (
+  ID           VARCHAR2(20)    PRIMARY KEY,
+  IDPANNE      VARCHAR2(20)    NOT NULL,
+  DATEFIN      DATE            NOT NULL,
+  CONSTRAINT FK_FINPANNE_PANNE FOREIGN KEY (IDPANNE) REFERENCES PANNE(ID)
+);
+
+-- Séquences pour ID (si vous utilisez triggers côté DB)
+CREATE SEQUENCE SEQ_PANNE START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+CREATE SEQUENCE SEQ_FINPANNE START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+
+-- Triggers pour générer les ID avec préfixe
+CREATE OR REPLACE TRIGGER TRG_PANNE_BI
+BEFORE INSERT ON PANNE
+FOR EACH ROW
+DECLARE
+  v_num NUMBER;
+BEGIN
+  IF :NEW.ID IS NULL THEN
+    SELECT SEQ_PANNE.NEXTVAL INTO v_num FROM dual;
+    :NEW.ID := 'PAN' || LPAD(v_num, 6, '0');
+  END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_FINPANNE_BI
+BEFORE INSERT ON FINPANNE
+FOR EACH ROW
+DECLARE
+  v_num NUMBER;
+BEGIN
+  IF :NEW.ID IS NULL THEN
+    SELECT SEQ_FINPANNE.NEXTVAL INTO v_num FROM dual;
+    :NEW.ID := 'FPN' || LPAD(v_num, 6, '0');
+  END IF;
+END;
+/
+
+-- Conseils d'exécution:
+-- sqlplus asynchotel/asynchotel@ORCL @g:/ITU/S5/PROG/gits/asyncHotel/sql/panne.sql
