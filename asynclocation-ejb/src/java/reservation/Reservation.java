@@ -362,6 +362,7 @@ public class Reservation extends ClassMere
         }
     }
     public ClassMAPTable createObject(String u, Connection c) throws Exception {
+        
 //        reservation.ReservationDetails[] fille=(reservation.ReservationDetails[])this.getFille();
 //        ArrayList<reservation.ReservationDetails> retour=new ArrayList<>();
 //        for(int i=0;i<fille.length;i++)
@@ -370,6 +371,40 @@ public class Reservation extends ClassMere
 //        }
 //        reservation.ReservationDetails[] filleVrai=retour.toArray (new reservation.ReservationDetails[retour.size()]);
 //        this.setFille(filleVrai);
+        // Valider chaque détail contre les pannes AVANT l'insertion
+        // 1) Générer l'ID de la réservation si pas encore fait
+        if (this.getId() == null || this.getId().trim().isEmpty()) {
+            // Adaptez au pattern utilisé dans votre projet (exemple illustratif)
+            this.preparePk("RESERVATION", "GETSEQRESERVATION");
+            this.setId(this.makePK(c)); // nécessite une connexion 'c' ouverte ici
+        }
+
+        // 2) Valider chaque détail avec idmere et date déjà posés
+        Object[] filles = this.getFille();
+        if (filles != null) {
+            for (Object o : filles) {
+                if (o instanceof reservation.ReservationDetails) {
+                    reservation.ReservationDetails det = (reservation.ReservationDetails) o;
+
+                    // Poser la liaison mère
+                    det.setIdmere(this.getId());
+
+                    // Poser une date de contrôle fiable (fallback) = date entête
+                    if (det.getDaty() == null) {
+                        det.setDaty(this.getDaty());
+                    }
+
+                    // S'assurer du nom de table si nécessaire
+                    if (det.getNomTable() == null || det.getNomTable().trim().isEmpty()) {
+                        det.setNomTable("RESERVATIONDETAILS");
+                    }
+
+                    // Contrôle d'insert (inclut le contrôle 'panne' côté Java)
+                    det.controlerInsert(c);
+                }
+            }
+        }
+
         return super.createObject(u, c);
     }
     

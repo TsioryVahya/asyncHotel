@@ -217,18 +217,33 @@ public class ReservationDetails extends ClassFille
             if (openedHere && c != null) try { c.close(); } catch (Exception ignore) {}
         }
     }
+
+    
     private void assertNoOpenPanne(Connection c) throws Exception {
-        // Si pas de date ou pas de voiture à vérifier, on ne bloque pas
-        if (this.getDaty() == null) return;
+        // 1) Résoudre la voiture (idVoiture direct, sinon via AS_INGREDIENTS_LIB à partir d'idproduit)
         String voitureId = resolveVoitureId(c);
         if (voitureId == null || voitureId.trim().isEmpty()) return;
     
         boolean openedHere = false;
+        java.sql.Date dControle = null;
         try {
             if (c == null) { c = new utilitaire.UtilDB().GetConn(); openedHere = true; }
     
-            // Panne ouverte si: existe p dans PANNE pour la voiture avec p.DATEPANNE <= daty
-            // et il n'existe pas de FINPANNE avec datefin < daty
+            // 2) Utiliser la date de la réservation (entête) en priorité
+            if (this.getIdmere() != null && !this.getIdmere().trim().isEmpty()) {
+                String sqlDateEntete = "SELECT daty FROM RESERVATION WHERE id = ?";
+                try (PreparedStatement ps = c.prepareStatement(sqlDateEntete)) {
+                    ps.setString(1, this.getIdmere());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) dControle = rs.getDate(1);
+                    }
+                }
+            }
+            // 3) Fallback sur la date du détail si entête introuvable
+            if (dControle == null) dControle = this.getDaty();
+            if (dControle == null) return; // pas de date => pas de blocage
+    
+            // 4) Panne ouverte (p.DATEPANNE <= dControle) ET pas de FINPANNE avec DATEFIN < dControle
             String sql =
                 "SELECT 1 " +
                 "FROM PANNE p " +
@@ -242,12 +257,14 @@ public class ReservationDetails extends ClassFille
                 "  AND ROWNUM = 1";
             try (PreparedStatement ps = c.prepareStatement(sql)) {
                 ps.setString(1, voitureId);
-                ps.setDate(2, this.getDaty());
-                ps.setDate(3, this.getDaty());
+                ps.setDate(2, dControle);
+                ps.setDate(3, dControle);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        throw new Exception("Voiture indisponible: panne ouverte pour " + voitureId +
-                            " à la date " + this.getDaty() + ".");
+                        throw new Exception(
+                            "Voiture indisponible: panne ouverte (" + voitureId + ") à la date " +
+                            new java.text.SimpleDateFormat("dd/MM/yyyy").format(dControle) + "."
+                        );
                     }
                 }
             }
