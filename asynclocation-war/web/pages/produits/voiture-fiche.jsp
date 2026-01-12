@@ -13,6 +13,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="produits.Voiture" %>
+<%@ page import="java.math.BigDecimal" %>
+<%@ page import="java.sql.*" %>
 
 <%
     try{
@@ -43,6 +45,66 @@
 
     pc.setTitre("Fiche Voiture");
 
+    // Vérifier si la voiture est marquée comme 'Non charge'
+    boolean isNonCharge = false;
+    if (id != null && id.trim().length() > 0) {
+        Connection cFlag = null;
+        try {
+            cFlag = new UtilDB().GetConn();
+            String sqlFlag = "SELECT 1 FROM NONCHARGEAUTOMOBILE WHERE IDVOITURE = ?";
+            PreparedStatement psFlag = cFlag.prepareStatement(sqlFlag);
+            psFlag.setString(1, id);
+            ResultSet rsFlag = psFlag.executeQuery();
+            if (rsFlag.next()) {
+                isNonCharge = true;
+            }
+            rsFlag.close();
+            psFlag.close();
+        } catch (Exception ignore) {
+        } finally {
+            if (cFlag != null) try { cFlag.close(); } catch (Exception e2) {}
+        }
+    }
+
+    // Calcul du total des montants d'entretien pour cette voiture (FINPANNE.MONTANT)
+    BigDecimal totalEntretien = BigDecimal.ZERO;
+    if (id != null && id.trim().length() > 0) {
+        Connection cTotal = null;
+        try {
+            cTotal = new UtilDB().GetConn();
+            String sqlTotal =
+                "SELECT NVL(SUM(f.MONTANT), 0) " +
+                "FROM FINPANNE f " +
+                "JOIN PANNE p ON p.ID = f.IDPANNE " +
+                "WHERE p.IDVOITURE = ?";
+            PreparedStatement psTotal = cTotal.prepareStatement(sqlTotal);
+            psTotal.setString(1, id);
+            ResultSet rsTotal = psTotal.executeQuery();
+            if (rsTotal.next()) {
+                totalEntretien = rsTotal.getBigDecimal(1);
+                if (totalEntretien == null) {
+                    totalEntretien = BigDecimal.ZERO;
+                }
+            }
+            rsTotal.close();
+            psTotal.close();
+        } catch (Exception ignore) {
+            // en cas d'erreur, laisser totalEntretien à 0
+        } finally {
+            if (cTotal != null) try { cTotal.close(); } catch (Exception e2) {}
+        }
+    }
+
+    // Si la voiture est 'Non charge', forcer les montants à 0
+    if (isNonCharge) {
+        try {
+            if (pc.getChampByName("montantResa") != null) pc.getChampByName("montantResa").setValeurDirect("0");
+            if (pc.getChampByName("charge") != null) pc.getChampByName("charge").setValeurDirect("0");
+            if (pc.getChampByName("marge") != null) pc.getChampByName("marge").setValeurDirect("0");
+        } catch (Exception ignore) {}
+        totalEntretien = BigDecimal.ZERO;
+    }
+
     //Initialisation de l'objet onglet
     Map<String, String> map = new HashMap<String, String>();
     map.put("tarif-voiture", "");
@@ -69,8 +131,15 @@
                         <%
                             out.println(pc.getHtml());
                         %>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Montant entretien</th>
+                                <td><%= totalEntretien != null ? totalEntretien : BigDecimal.ZERO %></td>
+                            </tr>
+                        </table>
                         <div class="box-footer">
                             <a class="btn btn-primary pull-right"  href="<%= lien + "?but=location/voiture/saisie-charge-voiture.jsp"+"&id=" + id%>" style="margin-right: 10px">Saisie Charge</a>
+                            <a class="btn btn-danger pull-right" href="<%= lien + "?but=panne/noncharge-save.jsp&idVoiture=" + id %>" style="margin-right: 10px">Non charge</a>
                             <a class="btn btn-success pull-right" href="<%= lien + "?but=panne/finpanne-saisie.jsp&idVoiture=" + id %>" style="margin-right: 10px">Finir panne</a>
                             <a class="btn btn-warning pull-right" href="<%= lien + "?but=panne/panne-saisie.jsp&idVoiture=" + id %>" style="margin-right: 10px">Panne</a>
                             <a class="btn btn-secondary pull-right"  href="<%= lien + "?but=produits/as-ingredients-saisie.jsp"+"&id=" + id%>" style="margin-right: 10px">Saisir Tarif</a>

@@ -59,3 +59,10 @@ ALTER TABLE FINPANNE
   ADD MONTANT NUMBER(20,2);
 
 commit;
+
+-- Table pour marquer les voitures sans charge automatique
+CREATE TABLE NONCHARGEAUTOMOBILE (
+  IDVOITURE VARCHAR2(20) PRIMARY KEY
+);
+
+commit;

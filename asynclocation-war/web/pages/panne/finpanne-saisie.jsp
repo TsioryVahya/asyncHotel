@@ -22,12 +22,13 @@
                 c = new UtilDB().GetConn();
                 openedHere = true;
                 String sql =
-                    "SELECT p.ID " +
-                    "FROM PANNE p " +
-                    "WHERE p.IDVOITURE = ? " +
-                    "  AND NOT EXISTS (SELECT 1 FROM FINPANNE f WHERE f.IDPANNE = p.ID) " +
-                    "ORDER BY p.DATEPANNE DESC " +
-                    "FETCH FIRST 1 ROW ONLY";
+                    "SELECT ID FROM (" +
+                    "  SELECT p.ID " +
+                    "  FROM PANNE p " +
+                    "  WHERE p.IDVOITURE = ? " +
+                    "    AND NOT EXISTS (SELECT 1 FROM FINPANNE f WHERE f.IDPANNE = p.ID) " +
+                    "  ORDER BY p.DATEPANNE DESC" +
+                    ") WHERE ROWNUM = 1";
                 PreparedStatement ps = c.prepareStatement(sql);
                 ps.setString(1, idVoiture);
                 ResultSet rs = ps.executeQuery();
@@ -49,10 +50,16 @@
         String butApresPost = "produits/voiture-fiche.jsp";
         String nomTable = "FINPANNE";
 
-        if (pi.getFormu().getChamp("idmere") != null) {
-            pi.getFormu().getChamp("idmere").setLibelle("Panne");
+        // Le framework peut générer soit un champ "idmere", soit directement "idpanne".
+        // On cherche le champ présent dans le formulaire et on le préremplit avec la dernière panne ouverte.
+        affichage.Champ champIdPanne = pi.getFormu().getChamp("idmere");
+        if (champIdPanne == null) {
+            champIdPanne = pi.getFormu().getChamp("idpanne");
+        }
+        if (champIdPanne != null) {
+            champIdPanne.setLibelle("Idpanne");
             if (idPanne != null && idPanne.trim().length() > 0) {
-                pi.getFormu().getChamp("idmere").setDefaut(idPanne);
+                champIdPanne.setDefaut(idPanne);
             }
         }
         if (pi.getFormu().getChamp("datefin") != null) {
@@ -72,14 +79,11 @@
             Aucune panne ouverte trouv&eacute;e pour cette voiture.
         </div>
     <% } else { %>
-    <form action="<%=pi.getLien()%>?but=apresTarif.jsp" method="post" data-parsley-validate>
+    <form action="panne/finpanne-save.jsp" method="post" data-parsley-validate>
         <%
             out.println(pi.getFormu().getHtmlInsert());
         %>
-        <input name="acte" type="hidden" value="insert">
-        <input name="bute" type="hidden" value="<%= butApresPost + (idVoiture != null ? ("&id=" + idVoiture) : "") %>">
-        <input name="classe" type="hidden" value="<%= classe %>">
-        <input name="nomtable" type="hidden" value="<%= nomTable %>">
+        <input name="idVoiture" type="hidden" value="<%= idVoiture %>">
     </form>
     <% } %>
 </div>
