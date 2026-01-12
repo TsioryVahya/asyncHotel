@@ -47,6 +47,13 @@ public class Panne extends ClassMere {
     }
 
     @Override
+    public void construirePK(Connection c) throws Exception {
+        // Laisser la base (trigger TRG_PANNE_BI + SEQ_PANNE) générer l'identifiant.
+        // Ne pas appeler preparePk/makePK ici pour éviter l'utilisation d'une
+        // séquence/fonction inexistante (GETSEQEXECUTIONS).
+    }
+
+    @Override
     public String getTuppleID() {
         return id;
     }

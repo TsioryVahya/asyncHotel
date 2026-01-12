@@ -71,6 +71,8 @@
                         %>
                         <div class="box-footer">
                             <a class="btn btn-primary pull-right"  href="<%= lien + "?but=location/voiture/saisie-charge-voiture.jsp"+"&id=" + id%>" style="margin-right: 10px">Saisie Charge</a>
+                            <a class="btn btn-success pull-right" href="<%= lien + "?but=panne/finpanne-saisie.jsp&idVoiture=" + id %>" style="margin-right: 10px">Finir panne</a>
+                            <a class="btn btn-warning pull-right" href="<%= lien + "?but=panne/panne-saisie.jsp&idVoiture=" + id %>" style="margin-right: 10px">Panne</a>
                             <a class="btn btn-secondary pull-right"  href="<%= lien + "?but=produits/as-ingredients-saisie.jsp"+"&id=" + id%>" style="margin-right: 10px">Saisir Tarif</a>
                             <a class="btn btn-secondary pull-right"  href="<%= lien + "?but="+ pageModif +"&id=" + id%>" style="margin-right: 10px">Modifier</a>
                             <a  class="btn btn-danger pull-left" href="<%= lien + "?but=apresTarif.jsp&id=" + id+"&acte=delete&bute=#&classe="+classe %>">Supprimer</a>

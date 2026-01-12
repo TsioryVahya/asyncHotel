@@ -53,3 +53,9 @@ END;
 
 -- Conseils d'exécution:
 -- sqlplus asynchotel/asynchotel@ORCL @g:/ITU/S5/PROG/gits/asyncHotel/sql/panne.sql
+
+
+ALTER TABLE FINPANNE
+  ADD MONTANT NUMBER(20,2);
+
+commit;
