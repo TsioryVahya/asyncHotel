@@ -103,6 +103,8 @@
             if (pc.getChampByName("marge") != null) pc.getChampByName("marge").setValeurDirect("0");
             if (pc.getChampByName("valeur_actuelle") != null) pc.getChampByName("valeur_actuelle").setValeurDirect("0");
             if (pc.getChampByName("consommation") != null) pc.getChampByName("consommation").setValeurDirect("0");
+            if (pc.getChampByName("charge_per_kilometre") != null) pc.getChampByName("charge_per_kilometre").setValeurDirect("0");
+            if (pc.getChampByName("kilometrage_actuel") != null) pc.getChampByName("kilometrage_actuel").setValeurDirect("0");
         } catch (Exception ignore) {}
         totalEntretien = BigDecimal.ZERO;
     }
