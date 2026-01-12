@@ -101,6 +101,8 @@
             if (pc.getChampByName("montantResa") != null) pc.getChampByName("montantResa").setValeurDirect("0");
             if (pc.getChampByName("charge") != null) pc.getChampByName("charge").setValeurDirect("0");
             if (pc.getChampByName("marge") != null) pc.getChampByName("marge").setValeurDirect("0");
+            if (pc.getChampByName("valeur_actuelle") != null) pc.getChampByName("valeur_actuelle").setValeurDirect("0");
+            if (pc.getChampByName("consommation") != null) pc.getChampByName("consommation").setValeurDirect("0");
         } catch (Exception ignore) {}
         totalEntretien = BigDecimal.ZERO;
     }
